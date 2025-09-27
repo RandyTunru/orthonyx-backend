@@ -1,0 +1,8 @@
+.env.app
+.env.db
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
