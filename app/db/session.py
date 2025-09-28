@@ -1,0 +1,13 @@
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from app.core.db_config import settings
+
+# Example for Postgres async driver:
+# DATABASE_URL should be like: postgresql+asyncpg://user:pass@db:5432/dbname
+engine = create_async_engine(settings.DATABASE_URL, future=True, echo=False)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
+# FastAPI dependency to get session:
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
