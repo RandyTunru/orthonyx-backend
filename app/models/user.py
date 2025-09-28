@@ -3,8 +3,6 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy import text
 from sqlalchemy.orm import declarative_base
 
-import uuid
-
 Base = declarative_base()
 
 class User(Base):

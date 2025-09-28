@@ -6,7 +6,7 @@ class SignupIn(BaseModel):
     password: str
 
 class SigninIn(BaseModel):
-    username: str   # or email if you prefer
+    username: str   
     password: str
 
 class SigninOut(BaseModel):
