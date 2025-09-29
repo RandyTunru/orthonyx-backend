@@ -9,6 +9,7 @@ from app.utils.security import (
 )
 from app.crud.user import (
     get_user_by_username,
+    get_user_by_username_for_update,
     get_user_by_email,
     create_user,
     rotate_api_key,
@@ -41,29 +42,32 @@ async def register_user(db: AsyncSession, email: str, username: str, password: s
     )
 
 async def signin_and_rotate_api_key(db: AsyncSession, username: str, password: str):
-    user = await get_user_by_username(db, username)
-    if not user:
-        return None, None
-    # verify password
-    if not verify_password(password, user.password_hash):
-        return None, None
-    
-    await update_last_login(db, user.id)
-    
-    now = datetime.now(timezone.utc)
-    if user.api_key_enc and user.api_key_expires_at and user.api_key_expires_at > now:
-        try:
-            raw_api_key = decrypt_api_key(user.api_key_enc)
-        except ValueError:
-            # decryption failed — treat like expired/missing and rotate
-            raw_api_key = None
+    async with db.begin():
+        user = await get_user_by_username_for_update(db, username)
 
-        if raw_api_key:
-            return user, raw_api_key
+        if not user:
+            return None, None
+        
+        if not verify_password(password, user.password_hash):
+            return None, None
+        
+        now = datetime.now(timezone.utc)
 
-    # either no key, decryption failed, or expired => generate new
-    raw_api_key = generate_api_key_hex()
-    enc = encrypt_api_key(raw_api_key)
-    expires_at = api_key_expiration_from_now()
-    updated_user = await rotate_api_key(db, user.id, enc, expires_at)
-    return updated_user, raw_api_key
+        if user.api_key_enc and user.api_key_created_at and user.api_key_created_at > now:
+            try:
+                raw_api_key = decrypt_api_key(user.api_key_enc)
+            except ValueError:
+                raw_api_key = None
+
+            if raw_api_key:
+                updated_user = await update_last_login(db, user.id)
+                return updated_user, raw_api_key
+            
+
+        raw_api_key = generate_api_key_hex()
+        enc = encrypt_api_key(raw_api_key)
+        expires_at = api_key_expiration_from_now()
+
+        updated_user = await rotate_api_key(db, user.id, enc, expires_at)
+
+        return updated_user, raw_api_key

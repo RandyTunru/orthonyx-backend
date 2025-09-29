@@ -10,6 +10,11 @@ async def get_user_by_username(db: AsyncSession, username: str) -> Optional[User
     res = await db.execute(q)
     return res.scalars().first()
 
+async def get_user_by_username_for_update(db: AsyncSession, username: str) -> Optional[User]:
+    q = select(User).where(User.username == username).with_for_update()
+    res = await db.execute(q)
+    return res.scalars().first()
+
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     q = select(User).where(User.email.ilike(email))
     res = await db.execute(q)
@@ -37,15 +42,16 @@ async def create_user(db: AsyncSession, *, email: str, username: str, password_h
         await db.rollback()
         raise
 
-async def rotate_api_key(db: AsyncSession, user_id, new_api_key_hash: bytes, expires_at):
+async def rotate_api_key(db: AsyncSession, user_id, new_api_key_enc: str, expires_at):
     q = (
         update(User)
         .where(User.id == user_id)
         .values(
-            api_key_hash=new_api_key_hash,
+            api_key_enc=new_api_key_enc,
             api_key_created_at=datetime.now(timezone.utc),
             api_key_expires_at=expires_at,
-            api_key_revoked=False
+            api_key_revoked=False,
+            last_login_at = datetime.now(timezone.utc)
         )
         .returning(User)
     )
@@ -59,6 +65,7 @@ async def revoke_api_key(db: AsyncSession, user_id):
     await db.commit()
 
 async def update_last_login(db: AsyncSession, user_id):
-    q = update(User).where(User.id == user_id).values(last_login_at=datetime.now(timezone.utc))
-    await db.execute(q)
+    q = update(User).where(User.id == user_id).values(last_login_at=datetime.now(timezone.utc)).returning(User)
+    res = db.execute(q)
     await db.commit()
+    return res.scalars().first()
