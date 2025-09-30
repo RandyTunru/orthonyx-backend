@@ -66,7 +66,7 @@ async def signin_and_rotate_api_key(db: AsyncSession, username: str, password: s
 
         raw_api_key = generate_api_key_hex()
         enc = encrypt_api_key(raw_api_key)
-        expires_at = api_key_expiration_from_now()
+        expires_at = api_key_expiration_from_now(start=now)
 
         updated_user = await rotate_api_key(db, user.id, enc, expires_at)
 

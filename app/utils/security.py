@@ -27,7 +27,9 @@ def decrypt_api_key(enc: str) -> str:
     except InvalidToken:
         raise ValueError("invalid encrypted token or bad key")
 
-def api_key_expiration_from_now(days: int | None = None):
+def api_key_expiration_from_now(days: int | None = None, start: datetime | None = None) -> datetime:
     if days is None:
         days = settings.API_KEY_EXPIRE_DAYS
-    return datetime.now(timezone.utc) + timedelta(days=days)
+    if start is None:
+        start = datetime.now(timezone.utc)
+    return start + timedelta(days=days)
