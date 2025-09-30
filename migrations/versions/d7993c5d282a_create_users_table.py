@@ -28,28 +28,30 @@ def upgrade():
     op.create_table(
         'users',
         sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
-        sa.Column('email', sa.Text(), nullable=False),
-        sa.Column('username', sa.Text(), nullable=False),
+        sa.Column('email', sa.Text(), nullable=False, unique=True),
+        sa.Column('username', sa.Text(), nullable=False, unique=True),
         sa.Column('password_hash', sa.Text(), nullable=False),
-        sa.Column('api_key_hash', sa.LargeBinary(), nullable=False),   # BYTEA as bytes
+
+        sa.Column('api_key_enc', sa.Text(), nullable=False),
         sa.Column('api_key_created_at', sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text('now()')),
         sa.Column('api_key_expires_at', sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column('api_key_revoked', sa.Boolean(), nullable=False, server_default=sa.text('false')),
+
         sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('created_at', sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text('now()')),
         sa.Column('last_login_at', sa.TIMESTAMP(timezone=True), nullable=True),
-        sa.Column('metadata', postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb"))
+        sa.Column('meta', postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb"))
     )
 
     # indexes
     op.create_index('users_username_idx', 'users', ['username'], unique=True)
     op.create_index('users_email_idx', 'users', [sa.text('lower(email)')], unique=True)
-    op.create_index('users_api_key_hash_idx', 'users', ['api_key_hash'], unique=True)
+    op.create_index('users_api_key_enc_idx', 'users', ['api_key_enc'], unique=True)
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_index('users_api_key_hash_idx', table_name='users')
+    op.drop_index('users_api_key_enc_idx', table_name='users')
     op.drop_index('users_email_idx', table_name='users')
     op.drop_index('users_username_idx', table_name='users')
     op.drop_table('users')
