@@ -53,7 +53,8 @@ async def signin_and_rotate_api_key(db: AsyncSession, username: str, password: s
         
         now = datetime.now(timezone.utc)
 
-        if user.api_key_enc and user.api_key_created_at and user.api_key_created_at > now:
+        if user.api_key_enc and user.api_key_expires_at and user.api_key_expires_at > now:
+            # Try to reuse existing key if still valid
             try:
                 raw_api_key = decrypt_api_key(user.api_key_enc)
             except ValueError:
