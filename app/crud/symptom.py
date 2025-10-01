@@ -34,3 +34,8 @@ async def add_analysis(db: AsyncSession, symptom_check_id: int, analysis: str):
     res = await db.execute(q)
     await db.commit()
     return res.scalars().first()
+
+async def get_symptom_checkby_user_id(db: AsyncSession, user_id: str, limit: int = 10, offset: int = 0):
+    q = select(Symptom).where(Symptom.user_id == user_id).where(Symptom.status == StatusEnum.completed).order_by(Symptom.submitted_at.desc()).limit(limit).offset(offset)
+    res = await db.execute(q)
+    return res.scalars().all()
