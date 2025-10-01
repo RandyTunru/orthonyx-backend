@@ -17,13 +17,8 @@ async def submit_symptom_check(db: AsyncSession, user_id: int, age: int, sex: Se
         additional_notes=additional_notes
     )
     db.add(symptom_check)
-    try:
-        await db.commit()
-        await db.refresh(symptom_check)
-        return symptom_check
-    except IntegrityError:
-        await db.rollback()
-        raise
+    await db.flush()  # Use flush to get the ID without committing
+    return symptom_check
 
 async def add_analysis(db: AsyncSession, symptom_check_id: int, analysis: str):
     # Implementation for adding analysis to a symptom check

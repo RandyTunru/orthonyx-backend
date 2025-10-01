@@ -1,13 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils.security import decrypt_api_key
-from app.crud.symptom import (
-    submit_symptom_check,
-    add_analysis
-)
+from app.crud.symptom import submit_symptom_check
 from app.crud.user import get_user_by_id
-from datetime import datetime, timezone
 from typing import Optional
-from app.models.symptoms import SexEnum
+from app.models.symptoms import SexEnum, StatusEnum
 
 async def process_symptom_check(db: AsyncSession, user_id : str, api_key: str, age: int, sex: str, symptoms: str, duration: str, severity: int, additional_notes: Optional[str] = None):
     # Decrypt and validate API key (pseudo-code, implement as needed)
@@ -33,9 +29,12 @@ async def process_symptom_check(db: AsyncSession, user_id : str, api_key: str, a
 
     # Placeholder for analysis logic
     analysis = f"Preliminary analysis for symptoms: ..."
+    
+    symptom_check.analysis = analysis
+    symptom_check.status = StatusEnum.completed
 
-    # Add analysis to the symptom check
-    updated_check = await add_analysis(db, symptom_check.id, analysis) 
+    await db.commit()
+    await db.refresh(symptom_check)
 
-    return updated_check
+    return symptom_check
 
