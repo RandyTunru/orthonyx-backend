@@ -4,8 +4,6 @@ from datetime import datetime
 
 # Symptom check endpoint input schema
 class SymptomCheckIn(BaseModel):
-    user_id: str
-    api_key: str 
     age: int 
     sex: str
     symptoms: str

@@ -3,16 +3,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.symptom_check import SymptomCheckIn, SymptomInput, SymptomCheckOut
 from app.services.symptoms_check_service import process_symptom_check
 from app.db.session import get_session
+from app.schemas.authenticated_user import AuthenticatedUser
+from app.api.dependencies import get_current_user
 
 router = APIRouter()
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def symptom_check(payload: SymptomCheckIn, db: AsyncSession = Depends(get_session)):
+async def symptom_check(payload: SymptomCheckIn, current_user: AuthenticatedUser = Depends(get_current_user), db: AsyncSession = Depends(get_session)):
     try:
         result = await process_symptom_check(
             db,
-            user_id=payload.user_id,
-            api_key=payload.api_key,
+            user_id=current_user.id,
+            api_key=current_user.api_key,
             age=payload.age,
             sex=payload.sex,
             symptoms=payload.symptoms,
