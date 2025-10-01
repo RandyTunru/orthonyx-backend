@@ -2,10 +2,10 @@ import secrets
 from cryptography.fernet import InvalidToken, Fernet
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
-from app.core.db_config import settings
+from app.core.db_config import db_settings
 
 pwd_ctx = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-FERNET = Fernet(settings.FERNET_KEY)
+FERNET = Fernet(db_settings.FERNET_KEY)
 
 # Password helpers
 def hash_password(plain: str) -> str:
@@ -29,7 +29,7 @@ def decrypt_api_key(enc: str) -> str:
 
 def api_key_expiration_from_now(days: int | None = None, start: datetime | None = None) -> datetime:
     if days is None:
-        days = settings.API_KEY_EXPIRE_DAYS
+        days = db_settings.API_KEY_EXPIRE_DAYS
     if start is None:
         start = datetime.now(timezone.utc)
     return start + timedelta(days=days)

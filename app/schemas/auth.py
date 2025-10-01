@@ -11,4 +11,5 @@ class SigninIn(BaseModel):
 
 class SigninOut(BaseModel):
     username: str
+    user_id: str
     api_key: str

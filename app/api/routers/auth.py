@@ -26,4 +26,4 @@ async def signin(payload: SigninIn, db: AsyncSession = Depends(get_session)):
     user, raw_api_key = await signin_and_rotate_api_key(db, payload.username, payload.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return SigninOut(username=user.username, api_key=raw_api_key)
+    return SigninOut(username=user.username, user_id=str(user.id), api_key=raw_api_key)

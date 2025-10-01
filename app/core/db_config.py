@@ -8,4 +8,4 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env.app"
 
-settings = Settings()
+db_settings = Settings()
