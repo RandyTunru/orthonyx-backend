@@ -47,14 +47,14 @@ def upgrade() -> None:
         sa.Column("meta", postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb")),
     )
 
-    op.create_index("ix_symptoms_user_id", "symptoms", ["user_id"])
+    op.create_index("symptoms_user_id_idx", "symptoms", ["user_id"])
 
 
 def downgrade() -> None:
     bind = op.get_bind()
 
     # drop symptoms table and indexes
-    op.drop_index("ix_symptoms_user_id", table_name="symptoms")
+    op.drop_index("symptoms_user_id_idx", table_name="symptoms")
     op.drop_table("symptoms")
 
     # drop enum types 
