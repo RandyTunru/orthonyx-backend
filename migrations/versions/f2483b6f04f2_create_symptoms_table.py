@@ -48,13 +48,14 @@ def upgrade() -> None:
     )
 
     op.create_index("symptoms_user_id_idx", "symptoms", ["user_id"])
-
+    op.create_index("symptoms_id_idx", "symptoms", ["id"], unique=True)
 
 def downgrade() -> None:
     bind = op.get_bind()
 
     # drop symptoms table and indexes
     op.drop_index("symptoms_user_id_idx", table_name="symptoms")
+    op.drop_index("symptoms_id_idx", table_name="symptoms")
     op.drop_table("symptoms")
 
     # drop enum types 
