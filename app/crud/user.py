@@ -25,6 +25,11 @@ async def get_user_by_api_key_hash(db: AsyncSession, api_key_hash: bytes) -> Opt
     res = await db.execute(q)
     return res.scalars().first()
 
+async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
+    q = select(User).where(User.id == user_id)
+    res = await db.execute(q)
+    return res.scalars().first()
+
 async def create_user(db: AsyncSession, *, email: str, username: str, password_hash: str, api_key_enc: bytes, api_key_expires_at):
     user = User(
         email=email,
