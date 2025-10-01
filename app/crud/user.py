@@ -66,6 +66,6 @@ async def revoke_api_key(db: AsyncSession, user_id):
 
 async def update_last_login(db: AsyncSession, user_id):
     q = update(User).where(User.id == user_id).values(last_login_at=datetime.now(timezone.utc)).returning(User)
-    res = db.execute(q)
+    res = await db.execute(q)
     await db.commit()
     return res.scalars().first()
