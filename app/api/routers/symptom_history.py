@@ -3,11 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.symptom_history import SymptomHistoryOut, SymptomCheckOut, SymptomInput 
 from app.services.symptoms_history_services import get_symptom_history
 from app.db.session import get_session
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user, RateLimiter
 from app.schemas.authenticated_user import AuthenticatedUser
 
 router = APIRouter()
-@router.get("/", status_code=status.HTTP_200_OK)
+
+symptom_history_rate_limiter = RateLimiter(max_requests=10, window_seconds=60)
+
+@router.get("/", status_code=status.HTTP_200_OK, dependencies=[Depends(symptom_history_rate_limiter)])
 async def symptom_history(current_user: AuthenticatedUser = Depends(get_current_user), db: AsyncSession = Depends(get_session)):
     try:
         result = await get_symptom_history(
