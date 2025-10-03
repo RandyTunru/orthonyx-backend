@@ -1,13 +1,14 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
-    FERNET_KEY: str 
-    API_KEY_EXPIRE_DAYS: int = 3
+    OPENAI_API_KEY: str
+    OPENAI_MODEL: str = "gpt-4o"
+    OPENAI_MAX_CONCURRENCY: int = 5
+    OPENAI_TIMEOUT_SEC: int = 30
 
     model_config = {
         "env_file": ".env.app",
         "extra": "allow"
     }
 
-db_settings = Settings()
+openai_settings = Settings()

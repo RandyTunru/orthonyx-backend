@@ -5,6 +5,7 @@ from app.services.symptoms_check_service import process_symptom_check
 from app.db.session import get_session
 from app.schemas.authenticated_user import AuthenticatedUser
 from app.api.dependencies import get_current_user
+from app.exceptions.openai_exceptions import OpenAIError
 
 router = APIRouter()
 
@@ -24,6 +25,8 @@ async def symptom_check(payload: SymptomCheckIn, current_user: AuthenticatedUser
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except OpenAIError as e:
+        raise HTTPException(status_code=502, detail=f"Upstream OpenAI error: {str(e)}")
     
     SymptomInput(
         age=result.age,
