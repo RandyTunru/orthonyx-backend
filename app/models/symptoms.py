@@ -10,7 +10,7 @@ class SexEnum(str, enum.Enum):
     other = "other"
 
 class StatusEnum(str, enum.Enum):
-    in_review = "in_review"
+    not_completed = "not_completed"
     completed = "completed"
 
 
@@ -34,5 +34,5 @@ class Symptom(Base):
 
     # Timestamps and Status
     submitted_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now())    
-    status = Column(ENUM(StatusEnum, name="status_enum", create_type=False), nullable=False, server_default=text("'in_review'::status_enum"))
+    status = Column(ENUM(StatusEnum, name="status_enum", create_type=False), nullable=False, server_default=text("'not_completed'::status_enum"))
     meta = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))

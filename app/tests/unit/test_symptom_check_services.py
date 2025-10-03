@@ -21,7 +21,7 @@ def mock_dependencies(mocker):
     mock_symptom_check = MagicMock()
     mock_symptom_check.id = "1"
     mock_symptom_check.analysis = None 
-    mock_symptom_check.status = StatusEnum.in_review 
+    mock_symptom_check.status = StatusEnum.not_completed
     
     mock_submit_symptom_check = mocker.patch(
         "app.services.symptoms_check_service.submit_symptom_check",

@@ -24,7 +24,7 @@ def upgrade() -> None:
 
     # Define ENUM types
     sex_enum = postgresql.ENUM("male", "female", "other", name="sex_enum", create_type=False)
-    status_enum = postgresql.ENUM("in_review", "completed", name="status_enum", create_type=False)
+    status_enum = postgresql.ENUM("not_completed", "completed", name="status_enum", create_type=False)
 
     # Create enum types explicitly
     sex_enum.create(bind, checkfirst=True)
@@ -43,7 +43,7 @@ def upgrade() -> None:
         sa.Column("additional_notes", sa.Text(), nullable=True),
         sa.Column("analysis", sa.Text(), nullable=True),
         sa.Column("submitted_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("status", status_enum, nullable=False, server_default=sa.text("'in_review'::status_enum")),
+        sa.Column("status", status_enum, nullable=False, server_default=sa.text("'not_completed'::status_enum")),
         sa.Column("meta", postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb")),
     )
 
