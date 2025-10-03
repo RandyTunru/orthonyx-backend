@@ -20,21 +20,6 @@ async def submit_symptom_check(db: AsyncSession, user_id: int, age: int, sex: Se
     await db.flush()  # Use flush to get the ID without committing
     return symptom_check
 
-async def add_analysis(db: AsyncSession, symptom_check_id: int, analysis: str):
-    # Implementation for adding analysis to a symptom check
-    q = (
-        update(Symptom)
-        .where(Symptom.id == symptom_check_id)
-        .values(
-            analysis=analysis,
-            status=StatusEnum.completed
-        )
-        .returning(Symptom)
-    )
-    res = await db.execute(q)
-    await db.commit()
-    return res.scalars().first()
-
 async def get_symptom_checkby_user_id(db: AsyncSession, user_id: str, limit: int = 10, offset: int = 0):
     q = select(Symptom).where(Symptom.user_id == user_id).where(Symptom.status == StatusEnum.completed).order_by(Symptom.submitted_at.desc()).limit(limit).offset(offset)
     res = await db.execute(q)
