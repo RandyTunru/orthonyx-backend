@@ -1,5 +1,11 @@
+import time
+import asyncio
+from collections import deque
+
 from fastapi import Header, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
 from app.db.session import get_session
 from app.crud.user import get_user_by_id
@@ -36,3 +42,31 @@ async def get_current_user(
         )
 
     return AuthenticatedUser(id=str(user.id), api_key=api_key)
+
+class RateLimiter():
+    def __init__(self, max_requests: int = 100, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.clients = {}
+
+    async def __call__(self, current_user: AuthenticatedUser = Depends(get_current_user)):
+        api_key = current_user.api_key
+        current_time = time.time()
+
+        if api_key not in self.clients:
+            self.clients[api_key] = {
+                "lock": asyncio.Lock(),
+                "timestamps": deque() # use deque for efficient pops from left
+            }
+
+        client_data = self.clients[api_key]
+
+        # Remove timestamps outside the current window
+        async with client_data["lock"]: # ensures only one coroutine modifies timestamps at a time
+            while client_data["timestamps"] and client_data["timestamps"][0] <= current_time - self.window_seconds:
+                client_data["timestamps"].popleft()
+
+            if len(client_data["timestamps"]) >= self.max_requests:
+                raise HTTPException(status_code=429, detail="Rate limit exceeded")
+            
+            client_data["timestamps"].append(current_time)

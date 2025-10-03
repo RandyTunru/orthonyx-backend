@@ -4,12 +4,14 @@ from app.schemas.symptom_check import SymptomCheckIn, SymptomInput, SymptomCheck
 from app.services.symptoms_check_service import process_symptom_check
 from app.db.session import get_session
 from app.schemas.authenticated_user import AuthenticatedUser
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user, RateLimiter
 from app.exceptions.openai_exceptions import OpenAIError
 
 router = APIRouter()
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+symptom_check_rate_limiter = RateLimiter(max_requests=5, window_seconds=60)
+
+@router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(symptom_check_rate_limiter)])
 async def symptom_check(payload: SymptomCheckIn, current_user: AuthenticatedUser = Depends(get_current_user), db: AsyncSession = Depends(get_session)):
     try:
         result = await process_symptom_check(
