@@ -12,11 +12,11 @@ from app.schemas.authenticated_user import AuthenticatedUser
 
 async def get_current_user(
     # Use Header to extract values from the request headers
-    user_id: str = Header(..., description="The User's unique ID"),
-    api_key: str = Header(..., description="The User's API Key"),
+    user_id: str = Header(..., alias="X-User-ID", description="The User's unique ID"),
+    api_key: str = Header(..., alias="X-API-Key", description="The User's API Key"),
     db: AsyncSession = Depends(get_session)
 ) -> AuthenticatedUser:
-   
+    """Dependency to get the current authenticated user based on headers."""
     user = await get_user_by_id(db, user_id)
 
     if not user:
