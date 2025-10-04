@@ -73,6 +73,9 @@ async def process_symptom_check(db: AsyncSession, user_id : str, api_key: str, a
         await db.refresh(symptom_check)
         raise e
     
+    # Placeholder
+    # analysis_text = "Placeholder analysis text."
+    
     symptom_check.analysis = analysis_text
     symptom_check.status = StatusEnum.completed
 
