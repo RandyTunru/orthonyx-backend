@@ -60,6 +60,12 @@ You need to create three environment files in the root of the project: `.env.db`
 
 You will also need to generate a `FERNET_KEY` and paste it in `.env.app`. To generate a `FERNET_KEY`, you can run this short Python script:
 
+```shell
+pip install cryptography
+```
+
+Then run:
+
 ```python
 from cryptography.fernet import Fernet
 key = Fernet.generate_key()
