@@ -13,6 +13,10 @@ symptom_check_rate_limiter = RedisTokenBucketRateLimiter(capacity=5, refill_rate
 
 @router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(symptom_check_rate_limiter)])
 async def symptom_check(payload: SymptomCheckIn, current_user: AuthenticatedUser = Depends(get_current_user), db: AsyncSession = Depends(get_session)):
+    """ Endpoint to process a symptom check request.
+
+        **Note:** This is a protected endpoint that requires authentication. to get an API key and user ID, sign up at POST /auth/signup then login with the credentials at POST /auth/login and use the returned API key and user ID for authentication header.
+    """
     try:
         result = await process_symptom_check(
             db,

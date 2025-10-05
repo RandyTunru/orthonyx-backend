@@ -11,6 +11,18 @@ class SymptomCheckIn(BaseModel):
     severity: int
     additional_notes: Optional[str] = None
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "age": 30,
+                "sex": "female",
+                "symptoms": "headache and fever for 2 days",
+                "duration": "2 days",
+                "severity": 7,
+                "additional_notes": "also experiencing fatigue"
+            }
+        }
+    }
 
 # Symptom check endpoint output schemas
 class SymptomInput(BaseModel): # Input details nested within the output schema
