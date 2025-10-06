@@ -157,7 +157,7 @@ Assumptions Made:
   "symptoms": "headache and fever for 2 days",
   "duration": "2 days",
   "severity": 7,
-  "additionalNotes": "also experiencing fatigue"
+  "additional_notes": "also experiencing fatigue"
 }
 ```
 
