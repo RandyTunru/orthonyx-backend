@@ -148,6 +148,7 @@ Assumptions Made:
 * Used credentials (username, email) can not be used again for a new account sign-up, each email and username must be unique
 * Client will handle the API key, users will not need to see and handle their API key
 * The POST /symptom-check endpoint accepts a specific payload of the following structure
+* On OpenAI API failure, the provided symptoms payload is still stored on the database for potential future analysis. However it is marked with `'status': 'not_completed'` with an empty `analysis` value and won't be retrieved on GET /symptom-history
 
 ```json
   {
