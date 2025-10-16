@@ -10,7 +10,6 @@ A secure, rate-limited FastAPI backend for submitting and analyzing health sympt
 4. [Running the Application](#running-the-application)
 5. [Running Tests](#running-tests)
 6. [API Documentation](#api-documentation)
-7. [Bonus???](#bonus)
 
 ---
 
@@ -160,10 +159,6 @@ Assumptions Made:
   "additional_notes": "also experiencing fatigue"
 }
 ```
-
-## Bonus???
-
-A little extra somethin' somethin' ( ͡° ͜ʖ ͡°)
 
 ### Bonus Endpoints
 
