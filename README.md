@@ -2,6 +2,8 @@
 
 A secure, rate-limited FastAPI backend for submitting and analyzing health symptoms using the OpenAI API. The system is containerized with Docker for a reproducible and scalable environment.
 
+You may also access live API documentation at: [http://13.213.77.76/docs](http://13.213.77.76/docs)
+
 ## Table of Contents
 
 1. [Features](#features)
