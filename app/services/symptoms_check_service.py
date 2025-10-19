@@ -1,6 +1,8 @@
+# app/services/symptoms_check_service.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils.security import decrypt_api_key
-from app.crud.symptom import submit_symptom_check
+from app.crud.symptom import submit_symptom_check, update_symptom_analysis
 from app.crud.user import get_user_by_id
 from typing import Optional
 from app.models.symptoms import SexEnum, StatusEnum
@@ -10,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def process_symptom_check(db: AsyncSession, user_id : str, api_key: str, age: int, sex: str, symptoms: str, duration: str, severity: int, additional_notes: Optional[str] = None):
-    # Decrypt and validate API key 
+    # Decrypt and validate API key
     user = await get_user_by_id(db, user_id)
     if not user:
         raise ValueError("invalid_user")
@@ -19,67 +21,54 @@ async def process_symptom_check(db: AsyncSession, user_id : str, api_key: str, a
     if raw_api_key != api_key:
         raise ValueError("invalid_api_key")
     
-    # Submit symptom check
+    # Submit symptom check. Note we do NOT commit here.
+    # It's part of the overall transaction.
     symptom_check = await submit_symptom_check(
-        db,
-        user_id=user.id,
-        age=age,
-        sex=SexEnum(sex),
-        symptoms=symptoms,
-        duration=duration,
-        severity=severity,
-        additional_notes=additional_notes
+        db, user_id=user.id, age=age, sex=SexEnum(sex), symptoms=symptoms,
+        duration=duration, severity=severity, additional_notes=additional_notes
     )
+    # The `await db.flush()` in `submit_symptom_check` makes the ID available
+    # without needing a commit.
+    symptom_check_id = symptom_check.id
 
     # Call OpenAI for analysis
     try:
         analysis_text = await open_ai_analysis(age, sex, symptoms, duration, severity, additional_notes)
+        final_status = StatusEnum.completed
     except OpenAIAuthError as e:
-        # Serious config issue (bad server API key)
         logger.exception("OpenAI authentication error — check server OPENAI_API_KEY")
-        symptom_check.analysis = "Analysis temporarily unavailable (server configuration)."
-        symptom_check.status = StatusEnum.not_completed
-        # persist note so admins can detect, while keeping user data safe
-        await db.commit()
-        await db.refresh(symptom_check)
-        raise e  
-
+        analysis_text = "Analysis temporarily unavailable (server configuration)."
+        final_status = StatusEnum.not_completed
+        # We still update the record within the same transaction before re-raising
+        await update_symptom_analysis(db, symptom_check_id, analysis_text, final_status)
+        raise e
     except OpenAIRateLimitError as e:
-        # Upstream rate limit
         logger.warning("OpenAI rate-limit: %s", e)
-        symptom_check.analysis = "Analysis delayed due to service load; please check back shortly."
-        symptom_check.status = StatusEnum.not_completed
-        await db.commit()
-        await db.refresh(symptom_check)
-        raise e  
-
+        analysis_text = "Analysis delayed due to service load; please check back shortly."
+        final_status = StatusEnum.not_completed
+        await update_symptom_analysis(db, symptom_check_id, analysis_text, final_status)
+        raise e
     except (OpenAITransientError, OpenAITimeoutError, OpenAIUnavailableError) as e:
-        # Network/server issues:
         logger.warning("OpenAI transient/unavailable: %s", e)
-        # Simple heuristic fallback (not diagnostic): echo input as minimal analysis
         heuristic = f"Unable to complete automated analysis. Patient reports: {symptoms[:300]}."
-        symptom_check.analysis = heuristic
-        symptom_check.status = StatusEnum.not_completed
-        await db.commit()
-        await db.refresh(symptom_check)
+        analysis_text = heuristic
+        final_status = StatusEnum.not_completed
+        await update_symptom_analysis(db, symptom_check_id, analysis_text, final_status)
         raise e
-
     except Exception as e:
-        # Catch-all
         logger.exception("Unexpected error while calling OpenAI: %s", e)
-        symptom_check.analysis = "Analysis currently unavailable."
-        symptom_check.status = StatusEnum.not_completed
-        await db.commit()
-        await db.refresh(symptom_check)
+        analysis_text = "Analysis currently unavailable."
+        final_status = StatusEnum.not_completed
+        await update_symptom_analysis(db, symptom_check_id, analysis_text, final_status)
         raise e
-    
-    # Placeholder
+
+    #placeholder
     # analysis_text = "Placeholder analysis text."
+    # final_status = StatusEnum.completed
     
-    symptom_check.analysis = analysis_text
-    symptom_check.status = StatusEnum.completed
-
+    # Update symptom check with analysis if OpenAI call was successful
+    updated_symptom_check = await update_symptom_analysis(db, symptom_check_id, analysis_text, final_status)
     await db.commit()
-    await db.refresh(symptom_check)
-
-    return symptom_check
+    await db.refresh(updated_symptom_check)
+    
+    return updated_symptom_check

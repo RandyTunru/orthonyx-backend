@@ -3,7 +3,6 @@
 .env.prod*
 *.pem
 
-# Python
 __pycache__/
 *.py[cod]
 *$py.class

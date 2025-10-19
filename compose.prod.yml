@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  app:
+    image: "${ECR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+    container_name: orthonyx_app
+    env_file:
+      - .env.prod.app
+    ports:
+      - "80:8000"
+    command: ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000"]

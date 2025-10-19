@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     REDIS_HOST: str 
     REDIS_PORT: int
+    REDIS_USE_SSL: bool = False
 
     model_config = {
         "env_file": ".env.app",
