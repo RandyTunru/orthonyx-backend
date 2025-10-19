@@ -12,7 +12,6 @@ You may also access live API documentation at: [http://13.213.77.76/docs](http:/
 4. [Running the Application](#running-the-application)
 5. [Running Tests](#running-tests)
 6. [API Documentation](#api-documentation)
-7. [Bonus???](#bonus)
 
 ---
 
@@ -150,6 +149,7 @@ Assumptions Made:
 * Used credentials (username, email) can not be used again for a new account sign-up, each email and username must be unique
 * Client will handle the API key, users will not need to see and handle their API key
 * The POST /symptom-check endpoint accepts a specific payload of the following structure
+* On OpenAI API failure, the provided symptoms payload is still stored on the database for potential future analysis. However it is marked with `'status': 'not_completed'` with an empty `analysis` value and won't be retrieved on GET /symptom-history
 
 ```json
   {
@@ -158,13 +158,9 @@ Assumptions Made:
   "symptoms": "headache and fever for 2 days",
   "duration": "2 days",
   "severity": 7,
-  "additionalNotes": "also experiencing fatigue"
+  "additional_notes": "also experiencing fatigue"
 }
 ```
-
-## Bonus???
-
-A little extra somethin' somethin' ( ͡° ͜ʖ ͡°)
 
 ### Bonus Endpoints
 
